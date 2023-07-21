@@ -85,8 +85,11 @@ extension SceneDelegate {
     }
     
     func getNewToken() {
-        guard let access = KeyChain.read(key: "accessToken") else { return }
-        guard let refresh = KeyChain.read(key: "refreshToken") else { return }
+//        guard let access = KeyChain.read(key: "accessToken") else { return }
+//        guard let refresh = KeyChain.read(key: "refreshToken") else { return }
+        guard let access = UserDefaults.standard.string(forKey: "accessToken") else { return }
+        guard let refresh = UserDefaults.standard.string(forKey: "refreshToken") else { return }
+                
         authProvider.request(.authToken(Authorization: access, Refresh: refresh)) { result in
             switch result {
             case .success(let result):
@@ -95,7 +98,8 @@ extension SceneDelegate {
                     do {
                         guard let data = try result.map(GeneralResponse<TokenResponse>.self).data else { return }
                         self.tokenModel = data.convertToTokenModel()
-                        KeyChain.create(key: "accessToken", token: self.tokenModel.accessToken)
+//                        KeyChain.create(key: "accessToken", token: self.tokenModel.accessToken)
+                        UserDefaults.standard.set(self.tokenModel.accessToken, forKey: "accessToken")
                         APIConstants.accessToken = self.tokenModel.accessToken
                     } catch(let error) {
                         print(error.localizedDescription)

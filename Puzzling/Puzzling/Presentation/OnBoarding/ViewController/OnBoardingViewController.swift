@@ -158,9 +158,11 @@ extension OnBoardingViewContoller {
                         UserDefaults.standard.set(self.userModel.name, forKey: "name")
                         UserDefaults.standard.set(self.userModel.projectId, forKey: "projectId")
                         UserDefaults.standard.set(self.userModel.memberId, forKey: "memberId")
-                        KeyChain.create(key: "accessToken", token: self.userModel.accessToken)
-                        KeyChain.create(key: "refreshToken", token: self.userModel.refreshToken)
+//                        KeyChain.create(key: "accessToken", token: self.userModel.accessToken)
+//                        KeyChain.create(key: "refreshToken", token: self.userModel.refreshToken)
 //                        APIConstants.accessToken = self.userModel.accessToken
+                        UserDefaults.standard.set(self.userModel.accessToken, forKey: "accessToken")
+                        UserDefaults.standard.set(self.userModel.refreshToken, forKey: "refreshToken")
                         
                         if(self.userModel.isNewUser == true) {
                             self.gotoMainEnterProjectView()
@@ -189,8 +191,11 @@ extension OnBoardingViewContoller {
     }
     
     func getNewToken() {
-        guard let access = KeyChain.read(key: "accessToken") else { return }
-        guard let refresh = KeyChain.read(key: "refreshToken") else { return }
+//        guard let access = KeyChain.read(key: "accessToken") else { return }
+//        guard let refresh = KeyChain.read(key: "refreshToken") else { return }
+        guard let access = UserDefaults.standard.string(forKey: "accessToken") else { return }
+        guard let refresh = UserDefaults.standard.string(forKey: "refreshToken") else { return }
+        
         authProvider.request(.authToken(Authorization: access, Refresh: refresh)) { result in
             switch result {
             case .success(let result):
@@ -199,7 +204,8 @@ extension OnBoardingViewContoller {
                     do {
                         guard let data = try result.map(GeneralResponse<TokenResponse>.self).data else { return }
                         self.tokenModel = data.convertToTokenModel()
-                        KeyChain.create(key: "accessToken", token: self.tokenModel.accessToken)
+//                        KeyChain.create(key: "accessToken", token: self.tokenModel.accessToken)
+                        UserDefaults.standard.set(self.tokenModel.accessToken, forKey: "accessToken")
                         APIConstants.accessToken = self.tokenModel.accessToken
                     } catch(let error) {
                         print(error.localizedDescription)

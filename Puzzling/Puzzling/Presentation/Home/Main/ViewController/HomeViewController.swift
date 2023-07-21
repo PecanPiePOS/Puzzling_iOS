@@ -42,6 +42,7 @@ final class HomeViewController: UIViewController {
     private var currentProjectTitle: String = ""
     private var currentProjectRetrospectCycle: String = ""
     private var ongoingProjectArray: [OngoingProjectData] = []
+    private var todayServerString = Date().dateToServerString
     
     // MARK: - View Life Cycle
             
@@ -194,7 +195,7 @@ extension HomeViewController {
     
     private func setIndivisualDashboardData() {
         // MARK: - 개인 퍼즐 정보 가져오기
-        dashboardNetworkProvider.request(.fetchIndivisualPuzzle(memberId: self.memberId, projectId: self.currentProjectId, todayString: Date().dateToServerString)) { [weak self] response in
+        dashboardNetworkProvider.request(.fetchIndivisualPuzzle(memberId: self.memberId, projectId: self.currentProjectId, todayString: self.todayServerString)) { [weak self] response in
             switch response {
             case .success(let result):
                 let status = result.statusCode
@@ -299,7 +300,7 @@ extension HomeViewController {
     
     private func setTeamDashboardData() {
         // MARK: - 팀 퍼즐 가져오기
-        dashboardNetworkProvider.request(.fetchTeamPuzzle(projectId: self.currentProjectId, todayString: Date().dateToServerString)) { [weak self] response in
+        dashboardNetworkProvider.request(.fetchTeamPuzzle(projectId: self.currentProjectId, todayString: self.todayServerString)) { [weak self] response in
             switch response {
             case .success(let result):
                 let status = result.statusCode
@@ -366,33 +367,6 @@ extension HomeViewController {
                 }
             case .failure(let error):
                 print(error)
-            }
-        }
-        
-    }
-    
-    func getNewToken() {
-        guard let access = KeyChain.read(key: "accessToken") else { return }
-        guard let refresh = KeyChain.read(key: "refreshToken") else { return }
-        authProvider.request(.authToken(Authorization: access, Refresh: refresh)) { result in
-            switch result {
-            case .success(let result):
-                let status = result.statusCode
-                if status >= 200 && status < 300 {
-                    do {
-                        guard let data = try result.map(GeneralResponse<TokenResponse>.self).data else { return }
-                        self.tokenModel = data.convertToTokenModel()
-                        KeyChain.create(key: "accessToken", token: self.tokenModel.accessToken)
-                        APIConstants.accessToken = self.tokenModel.accessToken
-                    } catch(let error) {
-                        print(error.localizedDescription)
-                    }
-                }
-                else if status >= 400 {
-                    print("⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️")
-                }
-            case .failure(let error):
-                print(error.localizedDescription)
             }
         }
     }
